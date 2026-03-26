@@ -206,7 +206,7 @@ function handleFiles(files) {
 async function removeImage(i, img) {
   if (img.dbId) {
     try {
-      await axios.delete("http://localhost:3000/api/images/" + img.dbId, {
+      await axios.delete("https://budongsan-site.onrender.com/api/images/" + img.dbId, {
         headers: { Authorization: "Bearer " + auth.token }
       })
     } catch (e) { console.error(e) }
@@ -220,7 +220,7 @@ async function uploadImages(propertyId) {
   pending.forEach(img => formData.append('images', img.file))
   pending.forEach(img => { img.uploading = true })
   try {
-    const res = await axios.post("http://localhost:3000/api/images/" + propertyId, formData, {
+    const res = await axios.post("https://budongsan-site.onrender.com/api/images/" + propertyId, formData, {
       headers: { Authorization: "Bearer " + auth.token, 'Content-Type': 'multipart/form-data' }
     })
     pending.forEach((img, i) => {
@@ -244,7 +244,7 @@ async function openEdit(p) {
   editId.value = p.id
   tab.value = 'edit'
   try {
-    const res = await axios.get("http://localhost:3000/api/images/" + p.id)
+    const res = await axios.get("https://budongsan-site.onrender.com/api/images/" + p.id)
     previewImages.value = res.data.map(img => ({
       url: img.url, file: null, uploading: false, uploaded: true, dbId: img.id
     }))
@@ -279,7 +279,7 @@ async function deleteProperty(id) {
   } catch (e) { alert('삭제 중 오류가 발생했습니다.') }
 }
 async function loadInquiries() {
-  const res = await axios.get('http://localhost:3000/api/inquiries', {
+  const res = await axios.get('https://budongsan-site.onrender.com/api/inquiries', {
     headers: { Authorization: "Bearer " + auth.token }
   })
   inquiries.value = res.data

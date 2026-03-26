@@ -6,7 +6,7 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('token') || null)
 
   async function login(username, password) {
-    const res = await axios.post('http://localhost:3000/api/auth/login', { username, password })
+    const res = await axios.post('https://budongsan-site.onrender.com/api/auth/login', { username, password })
     token.value = res.data.token
     localStorage.setItem('token', res.data.token)
   }
