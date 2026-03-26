@@ -1,0 +1,43 @@
+<template>
+  <nav>
+    <RouterLink to="/" class="logo-wrap">
+      <div class="logo">구래부동산</div>
+      <div class="logo-sub">GURAE REAL ESTATE AGENCY</div>
+    </RouterLink>
+    <div class="nav-right">
+      <RouterLink to="/">매물보기</RouterLink>
+      <a href="#footer">이용안내</a>
+      <a href="#footer">오시는길</a>
+      <RouterLink to="/admin/login" class="nav-btn">관리자 로그인</RouterLink>
+    </div>
+  </nav>
+</template>
+
+<style scoped>
+nav {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 0 40px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.logo-wrap { text-decoration: none; }
+.logo { font-size: 18px; font-weight: 800; color: var(--navy); letter-spacing: -0.5px; }
+.logo-sub { font-size: 10px; color: var(--muted); font-weight: 400; letter-spacing: 2px; margin-top: 2px; }
+.nav-right { display: flex; align-items: center; gap: 28px; }
+.nav-right a { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 400; transition: color 0.2s; }
+.nav-right a:hover { color: var(--navy); }
+.nav-btn {
+  background: var(--navy) !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  padding: 7px 16px;
+  border-radius: 6px;
+  font-weight: 500 !important;
+}
+</style>

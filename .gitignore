@@ -1,0 +1,12 @@
+# 환경변수 (비밀번호, API키)
+.env
+.env.local
+
+# 의존성 폴더
+node_modules/
+
+# 로그
+*.log
+
+# OS 파일
+.DS_Store
