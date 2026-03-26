@@ -127,8 +127,9 @@ onMounted(() => { store.fetchAll() })
 .stat-label { font-size: 11px; color: var(--muted); }
 
 .filter-area { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 40px; }
-.cat-tabs { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; }
-.cat-tab { display: flex; align-items: center; gap: 6px; padding: 14px 22px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; white-space: nowrap; }
+.cat-tabs { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.cat-tabs::-webkit-scrollbar { display: none; }
+.cat-tab { display: flex; align-items: center; gap: 6px; padding: 14px 22px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
 .cat-tab:hover { color: var(--navy); }
 .cat-tab.active { color: var(--navy); font-weight: 700; border-bottom-color: var(--blue); }
 .cat-count { font-size: 10px; background: var(--bg); color: var(--muted); padding: 2px 7px; border-radius: 10px; font-weight: 500; }
@@ -160,6 +161,7 @@ onMounted(() => { store.fetchAll() })
 
   .filter-area { padding: 0 16px; }
   .cat-tab { padding: 12px 14px; font-size: 12px; }
+  .deal-tabs { padding: 10px 0; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
   .listings { padding: 20px 16px; }
   .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
