@@ -94,15 +94,24 @@ function catCount(cat) {
 }
 const filteredProperties = computed(() => {
   return store.properties.filter(p => {
-    const matchCat  = p.property_type === selectedCat.value
+    const hasSearch = searchKeyword.value.trim() !== ''
+    const matchCat  = hasSearch ? true : p.property_type === selectedCat.value
     const matchDeal = selectedDeal.value === '전체' || p.price_type === selectedDeal.value
-    const matchSearch = !searchKeyword.value ||
-      p.title?.includes(searchKeyword.value) ||
-      p.address?.includes(searchKeyword.value)
+    const keyword = searchKeyword.value.trim()
+    const matchSearch = !keyword ||
+      (p.title && p.title.includes(keyword)) ||
+      (p.address && p.address.includes(keyword)) ||
+      (p.description && p.description.includes(keyword))
     return matchCat && matchDeal && matchSearch
   })
 })
-function doSearch() {}
+function doSearch() {
+  // searchKeyword가 바뀌면 filteredProperties computed가 자동으로 필터링
+  // 아무 카테고리에서도 검색 가능하도록 전체로 초기화
+  if (searchKeyword.value) {
+    selectedDeal.value = '전체'
+  }
+}
 function goDetail(id) { router.push("/property/" + id) }
 onMounted(() => { store.fetchAll() })
 </script>
@@ -126,7 +135,7 @@ onMounted(() => { store.fetchAll() })
 .stat-num { font-size: 17px; font-weight: 800; color: var(--navy); line-height: 1; margin-bottom: 3px; letter-spacing: -0.5px; }
 .stat-label { font-size: 11px; color: var(--muted); }
 
-.filter-area { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 40px; position: sticky; top: 60px; z-index: 90; }
+.filter-area { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 40px; position: sticky; top: 60px; z-index: 90; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
 .cat-tabs { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .cat-tabs::-webkit-scrollbar { display: none; }
 .cat-tab { display: flex; align-items: center; gap: 6px; padding: 14px 22px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
@@ -159,7 +168,7 @@ onMounted(() => { store.fetchAll() })
   .phone-stat { flex: 1 1 100%; }
   .stat-num { font-size: 14px; }
 
-  .filter-area { padding: 0 16px; }
+  .filter-area { padding: 0 16px; top: 60px; }
   .cat-tab { padding: 12px 14px; font-size: 12px; }
   .deal-tabs { padding: 10px 0; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
