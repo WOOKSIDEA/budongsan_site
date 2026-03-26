@@ -9,7 +9,7 @@
           공인중개사 등록번호 · 제000호
         </div>
       </div>
-      <div>
+      <div class="footer-right">
         <div class="footer-tel">031-000-0000</div>
         <div class="footer-tel-label">평일 09:00 – 18:00</div>
       </div>
@@ -34,7 +34,15 @@ footer {
 }
 .footer-logo { font-size: 17px; font-weight: 800; color: #fff; margin-bottom: 8px; letter-spacing: -0.3px; }
 .footer-info { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 400; line-height: 2; }
+.footer-right { text-align: right; }
 .footer-tel { font-size: 20px; font-weight: 800; color: #fff; letter-spacing: -0.5px; margin-bottom: 4px; }
-.footer-tel-label { font-size: 11px; color: rgba(255,255,255,0.4); text-align: right; }
+.footer-tel-label { font-size: 11px; color: rgba(255,255,255,0.4); }
 .copyright { font-size: 11px; color: rgba(255,255,255,0.25); font-weight: 400; }
+
+@media (max-width: 768px) {
+  footer { padding: 28px 20px; }
+  .footer-top { flex-direction: column; gap: 20px; }
+  .footer-right { text-align: left; }
+  .footer-tel { font-size: 18px; }
+}
 </style>

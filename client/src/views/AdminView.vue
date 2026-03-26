@@ -10,6 +10,13 @@
       </nav>
       <button class="logout-btn" @click="doLogout">로그아웃</button>
     </div>
+    <!-- 모바일 탭 -->
+    <div class="mobile-tabs">
+      <div class="mobile-tab" :class="{ active: tab === 'list' }" @click="tab = 'list'">📋 목록</div>
+      <div class="mobile-tab" :class="{ active: tab === 'add' }" @click="openAdd">➕ 등록</div>
+      <div class="mobile-tab" :class="{ active: tab === 'inquiry' }" @click="tab = 'inquiry'">📩 문의</div>
+      <div class="mobile-tab logout" @click="doLogout">로그아웃</div>
+    </div>
     <div class="main-content">
       <div v-if="tab === 'list'">
         <div class="content-header">
@@ -370,4 +377,59 @@ onMounted(async () => {
 .save-btn:hover { background: #0f1f3d; }
 .save-btn:disabled { background: var(--muted); cursor: not-allowed; }
 .empty { text-align: center; padding: 80px 0; color: var(--muted); font-size: 14px; }
+
+/* 모바일 탭 */
+.mobile-tabs { display: none; }
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .admin-wrap { flex-direction: column; }
+  .sidebar { display: none; }
+  .mobile-tabs {
+    display: flex;
+    background: var(--navy);
+    padding: 0;
+    overflow-x: auto;
+  }
+  .mobile-tab {
+    flex: 1;
+    padding: 14px 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+  }
+  .mobile-tab:hover { color: #fff; }
+  .mobile-tab.active { color: #fff; font-weight: 700; border-bottom-color: #fff; }
+  .mobile-tab.logout { color: rgba(255,255,255,0.4); font-size: 11px; }
+
+  .main-content { padding: 20px 16px; }
+  .content-title { font-size: 16px; }
+
+  .property-table, .inquiry-table { overflow-x: auto; }
+  .property-table .table-header,
+  .property-table .table-row { grid-template-columns: 70px 1fr 60px 80px; gap: 8px; }
+  .property-table .table-header span:nth-child(5),
+  .property-table .table-header span:nth-child(6),
+  .property-table .table-row span:nth-child(5),
+  .property-table .table-row span:nth-child(6) { display: none; }
+
+  .inquiry-table .table-header,
+  .inquiry-table .table-row { grid-template-columns: 1fr 60px 90px; gap: 8px; }
+  .inquiry-table .table-header span:nth-child(4),
+  .inquiry-table .table-header span:nth-child(5),
+  .inquiry-table .table-row span:nth-child(4),
+  .inquiry-table .table-row span:nth-child(5) { display: none; }
+
+  .form-grid { grid-template-columns: 1fr; padding: 20px 16px; }
+  .form-group.full { grid-column: 1; }
+  .preview-grid { grid-template-columns: repeat(3, 1fr); }
+
+  .save-btn { width: 100%; }
+  .add-btn, .cancel-btn { font-size: 12px; padding: 8px 12px; }
+}
 </style>

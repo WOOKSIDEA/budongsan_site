@@ -28,26 +28,12 @@
         <h1 class="property-title">{{ property.title }}</h1>
         <div class="property-addr">📍 {{ property.address }}</div>
         <div class="property-price">{{ formattedPrice }}</div>
-
         <div class="meta-grid">
-          <div class="meta-item">
-            <div class="meta-label">면적</div>
-            <div class="meta-value">{{ property.area }}㎡</div>
-          </div>
-          <div class="meta-item">
-            <div class="meta-label">구조</div>
-            <div class="meta-value">{{ property.rooms }}룸</div>
-          </div>
-          <div class="meta-item">
-            <div class="meta-label">거래유형</div>
-            <div class="meta-value">{{ property.price_type }}</div>
-          </div>
-          <div class="meta-item">
-            <div class="meta-label">등록일</div>
-            <div class="meta-value">{{ createdDate }}</div>
-          </div>
+          <div class="meta-item"><div class="meta-label">면적</div><div class="meta-value">{{ property.area }}㎡</div></div>
+          <div class="meta-item"><div class="meta-label">구조</div><div class="meta-value">{{ property.rooms }}룸</div></div>
+          <div class="meta-item"><div class="meta-label">거래유형</div><div class="meta-value">{{ property.price_type }}</div></div>
+          <div class="meta-item"><div class="meta-label">등록일</div><div class="meta-value">{{ createdDate }}</div></div>
         </div>
-
         <div class="description" v-if="property.description">
           <div class="desc-title">매물 설명</div>
           <p>{{ property.description }}</p>
@@ -108,35 +94,30 @@ const typeEmoji = computed(() => {
   const map = { '아파트': '🏢', '오피스텔': '🏬', '상가': '🏪', '기타': '🌿' }
   return map[property.value?.property_type] || '🏠'
 })
-
 const dealBadgeClass = computed(() => {
   const map = { '매매': 'badge-sell', '전세': 'badge-jeonse', '월세': 'badge-monthly' }
   return map[property.value?.price_type] || ''
 })
-
 const formattedPrice = computed(() => {
   const price = property.value?.price
   if (!price) return '가격 문의'
   const eok = Math.floor(price / 100000000)
   const man = Math.floor((price % 100000000) / 10000)
   let str = ''
-  if (eok > 0) str += `${eok}억 `
-  if (man > 0) str += `${man.toLocaleString()}만`
+  if (eok > 0) str += eok + '억 '
+  if (man > 0) str += man.toLocaleString() + '만'
   return str + '원'
 })
-
 const createdDate = computed(() => {
   if (!property.value?.created_at) return '-'
   return new Date(property.value.created_at).toLocaleDateString('ko-KR')
 })
-
 async function submitInquiry() {
   if (!form.value.name || !form.value.phone) return alert('이름과 연락처를 입력해주세요.')
   submitting.value = true
   try {
     await axios.post('https://budongsan-site.onrender.com/api/inquiries', {
-      property_id: route.params.id,
-      ...form.value
+      property_id: route.params.id, ...form.value
     })
     submitDone.value = true
     form.value = { name: '', phone: '', message: '' }
@@ -146,12 +127,9 @@ async function submitInquiry() {
     submitting.value = false
   }
 }
-
 onMounted(async () => {
   await store.fetchOne(route.params.id)
-  if (store.current?.images?.length) {
-    selectedImg.value = store.current.images[0]
-  }
+  if (store.current?.images?.length) selectedImg.value = store.current.images[0]
 })
 </script>
 
@@ -160,18 +138,11 @@ onMounted(async () => {
 .detail-wrap { max-width: 1100px; margin: 0 auto; padding: 40px; }
 
 .img-section { margin-bottom: 40px; }
-.main-img {
-  width: 100%; height: 420px; border-radius: 12px; overflow: hidden;
-  background: linear-gradient(135deg, #dde8f8, #c5d8f0);
-  display: flex; align-items: center; justify-content: center;
-}
+.main-img { width: 100%; height: 420px; border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #dde8f8, #c5d8f0); display: flex; align-items: center; justify-content: center; }
 .main-img img { width: 100%; height: 100%; object-fit: cover; }
 .img-placeholder { font-size: 64px; }
-.thumb-list { display: flex; gap: 10px; margin-top: 10px; }
-.thumb {
-  width: 80px; height: 60px; border-radius: 8px; overflow: hidden;
-  cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s;
-}
+.thumb-list { display: flex; gap: 10px; margin-top: 10px; overflow-x: auto; }
+.thumb { width: 80px; height: 60px; border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; flex-shrink: 0; }
 .thumb.active { border-color: var(--blue); }
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -190,19 +161,15 @@ onMounted(async () => {
 
 .meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 28px; }
 .meta-item { background: var(--bg); border-radius: 8px; padding: 14px 16px; }
-.meta-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 400; }
-.meta-value { font-size: 15px; font-weight: 700; color: var(--navy); letter-spacing: -0.3px; }
+.meta-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.meta-value { font-size: 15px; font-weight: 700; color: var(--navy); }
 
 .description { background: var(--bg); border-radius: 8px; padding: 20px; }
 .desc-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
 .description p { font-size: 13px; color: var(--text); line-height: 1.8; white-space: pre-wrap; }
 
-.inquiry-box {
-  background: var(--white); border: 1px solid var(--border);
-  border-radius: 12px; padding: 24px; height: fit-content;
-  position: sticky; top: 80px;
-}
-.inquiry-title { font-size: 15px; font-weight: 800; color: var(--navy); margin-bottom: 16px; letter-spacing: -0.3px; }
+.inquiry-box { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 24px; height: fit-content; position: sticky; top: 80px; }
+.inquiry-title { font-size: 15px; font-weight: 800; color: var(--navy); margin-bottom: 16px; }
 .inquiry-agent { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg); border-radius: 8px; margin-bottom: 20px; }
 .agent-avatar { font-size: 28px; }
 .agent-name { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
@@ -210,25 +177,29 @@ onMounted(async () => {
 
 .form-group { margin-bottom: 14px; }
 .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
-.form-group input, .form-group textarea {
-  width: 100%; font-family: 'Pretendard', sans-serif; font-size: 13px;
-  border: 1.5px solid var(--border); border-radius: 8px;
-  padding: 10px 14px; outline: none; background: var(--bg); color: var(--text);
-  transition: border-color 0.2s; resize: none;
-}
+.form-group input, .form-group textarea { width: 100%; font-family: Pretendard, sans-serif; font-size: 13px; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; outline: none; background: var(--bg); color: var(--text); transition: border-color 0.2s; resize: none; }
 .form-group input:focus, .form-group textarea:focus { border-color: var(--blue); background: var(--white); }
 
-.submit-btn {
-  width: 100%; background: var(--blue); color: #fff; border: none;
-  border-radius: 8px; padding: 13px; font-family: 'Pretendard', sans-serif;
-  font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s;
-  letter-spacing: -0.2px;
-}
+.submit-btn { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 8px; padding: 13px; font-family: Pretendard, sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
 .submit-btn:hover { background: #1e4bc4; }
 .submit-btn:disabled { background: var(--muted); cursor: not-allowed; }
 .submit-done { margin-top: 12px; font-size: 12px; color: #1e7a1e; text-align: center; font-weight: 500; background: #e4f4e4; padding: 10px; border-radius: 8px; }
 
 .back-wrap { margin-top: 40px; }
-.back-btn { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 20px; font-family: 'Pretendard', sans-serif; font-size: 13px; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+.back-btn { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 20px; font-family: Pretendard, sans-serif; font-size: 13px; color: var(--muted); cursor: pointer; }
 .back-btn:hover { border-color: var(--navy); color: var(--navy); }
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .detail-wrap { padding: 20px 16px; }
+  .main-img { height: 240px; border-radius: 8px; }
+  .img-section { margin-bottom: 24px; }
+  .info-section { grid-template-columns: 1fr; gap: 24px; }
+  .inquiry-box { position: static; }
+  .property-title { font-size: 18px; }
+  .property-price { font-size: 22px; margin-bottom: 20px; }
+  .meta-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .meta-item { padding: 12px; }
+  .meta-value { font-size: 14px; }
+}
 </style>
