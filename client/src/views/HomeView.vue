@@ -145,7 +145,7 @@ onMounted(() => { store.fetchAll() })
 .cat-tab.active .cat-count { background: var(--blue); color: #fff; }
 .deal-tabs { display: flex; gap: 6px; padding: 12px 0; align-items: center; overflow-x: auto; }
 .deal-label { font-size: 11px; color: var(--muted); margin-right: 4px; font-weight: 500; white-space: nowrap; }
-.deal-tab { padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: var(--white); color: var(--muted); transition: all 0.15s; white-space: nowrap; }
+.deal-tab { padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: var(--white); color: var(--muted); transition: all 0.15s; white-space: nowrap; user-select: none; -webkit-user-select: none; }
 .deal-tab:hover { border-color: var(--navy); color: var(--navy); }
 .deal-tab.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
