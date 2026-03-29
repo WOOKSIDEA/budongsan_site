@@ -166,7 +166,7 @@ async function submitInquiry() {
   if (!form.value.name || !form.value.phone) return alert('이름과 연락처를 입력해주세요.')
   submitting.value = true
   try {
-    await axios.post('https://budongsan-site.onrender.com/api/inquiries', {
+    await axios.post('${import.meta.env.VITE_API_URL}/api/inquiries', {
       property_id: route.params.id, ...form.value
     })
     submitDone.value = true
