@@ -135,19 +135,31 @@ const createdDate = computed(() => {
 })
 
 function initMap(address) {
-  if (!window.kakao || !window.kakao.maps) return
-  const container = document.getElementById('kakao-map')
-  if (!container) return
-  const options = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 4 }
-  const map = new kakao.maps.Map(container, options)
-  const geocoder = new kakao.maps.services.Geocoder()
-  geocoder.addressSearch(address, (result, status) => {
-    if (status === kakao.maps.services.Status.OK) {
-      const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
-      const marker = new kakao.maps.Marker({ map, position: coords })
-      map.setCenter(coords)
+  const loadMap = () => {
+    const container = document.getElementById('kakao-map')
+    if (!container) return
+    const options = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 4 }
+    const map = new kakao.maps.Map(container, options)
+    const geocoder = new kakao.maps.services.Geocoder()
+    geocoder.addressSearch(address, (result, status) => {
+      if (status === kakao.maps.services.Status.OK) {
+        const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
+        new kakao.maps.Marker({ map, position: coords })
+        map.setCenter(coords)
+      }
+    })
+  }
+
+  if (window.kakao && window.kakao.maps) {
+    loadMap()
+  } else {
+    const script = document.createElement('script')
+    script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=d6a424243849b346c82c835678da17ed&libraries=services&autoload=false`
+    script.onload = () => {
+      kakao.maps.load(loadMap)
     }
-  })
+    document.head.appendChild(script)
+  }
 }
 
 async function submitInquiry() {
