@@ -28,15 +28,29 @@
         <h1 class="property-title">{{ property.title }}</h1>
         <div class="property-addr">📍 {{ property.address }}</div>
         <div class="property-price">{{ formattedPrice }}</div>
+
+        <!-- 메타 그리드 -->
         <div class="meta-grid">
           <div class="meta-item"><div class="meta-label">면적</div><div class="meta-value">{{ property.area }}㎡</div></div>
-          <div class="meta-item"><div class="meta-label">구조</div><div class="meta-value">{{ property.rooms }}룸</div></div>
+          <div class="meta-item"><div class="meta-label">구조</div><div class="meta-value">{{ roomBath }}</div></div>
           <div class="meta-item"><div class="meta-label">거래유형</div><div class="meta-value">{{ property.price_type }}</div></div>
+          <div class="meta-item" v-if="property.floor"><div class="meta-label">층수</div><div class="meta-value">{{ property.floor }}층 / 전체 {{ property.total_floors }}층</div></div>
+          <div class="meta-item" v-if="property.building_year"><div class="meta-label">준공연도</div><div class="meta-value">{{ property.building_year }}년</div></div>
+          <div class="meta-item" v-if="property.move_in_date"><div class="meta-label">입주가능일</div><div class="meta-value">{{ property.move_in_date }}</div></div>
+          <div class="meta-item"><div class="meta-label">주차</div><div class="meta-value">{{ property.parking ? '가능' : '불가' }}</div></div>
           <div class="meta-item"><div class="meta-label">등록일</div><div class="meta-value">{{ createdDate }}</div></div>
         </div>
+
+        <!-- 매물 설명 -->
         <div class="description" v-if="property.description">
           <div class="desc-title">매물 설명</div>
           <p>{{ property.description }}</p>
+        </div>
+
+        <!-- 카카오지도 -->
+        <div class="map-section">
+          <div class="desc-title">위치</div>
+          <div id="kakao-map"></div>
         </div>
       </div>
 
@@ -76,7 +90,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { usePropertyStore } from '../stores/property'
 import axios from 'axios'
@@ -98,6 +112,13 @@ const dealBadgeClass = computed(() => {
   const map = { '매매': 'badge-sell', '전세': 'badge-jeonse', '월세': 'badge-monthly' }
   return map[property.value?.price_type] || ''
 })
+const roomBath = computed(() => {
+  const r = property.value?.rooms
+  const b = property.value?.bathrooms
+  if (r && b) return `방${r}/화${b}`
+  if (r) return `${r}룸`
+  return '-'
+})
 const formattedPrice = computed(() => {
   const price = property.value?.price
   if (!price) return '가격 문의'
@@ -112,6 +133,23 @@ const createdDate = computed(() => {
   if (!property.value?.created_at) return '-'
   return new Date(property.value.created_at).toLocaleDateString('ko-KR')
 })
+
+function initMap(address) {
+  if (!window.kakao || !window.kakao.maps) return
+  const container = document.getElementById('kakao-map')
+  if (!container) return
+  const options = { center: new kakao.maps.LatLng(37.5665, 126.9780), level: 4 }
+  const map = new kakao.maps.Map(container, options)
+  const geocoder = new kakao.maps.services.Geocoder()
+  geocoder.addressSearch(address, (result, status) => {
+    if (status === kakao.maps.services.Status.OK) {
+      const coords = new kakao.maps.LatLng(result[0].y, result[0].x)
+      const marker = new kakao.maps.Marker({ map, position: coords })
+      map.setCenter(coords)
+    }
+  })
+}
+
 async function submitInquiry() {
   if (!form.value.name || !form.value.phone) return alert('이름과 연락처를 입력해주세요.')
   submitting.value = true
@@ -127,16 +165,18 @@ async function submitInquiry() {
     submitting.value = false
   }
 }
+
 onMounted(async () => {
   await store.fetchOne(route.params.id)
   if (store.current?.images?.length) selectedImg.value = store.current.images[0]
+  await nextTick()
+  if (store.current?.address) initMap(store.current.address)
 })
 </script>
 
 <style scoped>
 .loading { text-align: center; padding: 100px; color: var(--muted); }
 .detail-wrap { max-width: 1100px; margin: 0 auto; padding: 40px; }
-
 .img-section { margin-bottom: 40px; }
 .main-img { width: 100%; height: 420px; border-radius: 12px; overflow: hidden; background: linear-gradient(135deg, #dde8f8, #c5d8f0); display: flex; align-items: center; justify-content: center; }
 .main-img img { width: 100%; height: 100%; object-fit: cover; }
@@ -145,51 +185,43 @@ onMounted(async () => {
 .thumb { width: 80px; height: 60px; border-radius: 8px; overflow: hidden; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; flex-shrink: 0; }
 .thumb.active { border-color: var(--blue); }
 .thumb img { width: 100%; height: 100%; object-fit: cover; }
-
 .info-section { display: grid; grid-template-columns: 1fr 340px; gap: 40px; }
-
 .badges { display: flex; gap: 6px; margin-bottom: 14px; }
 .badge { font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 5px; }
 .badge-type { background: rgba(27,45,79,0.1); color: var(--navy); }
 .badge-sell { background: #e4f4e4; color: #1e7a1e; }
 .badge-jeonse { background: #fff4e0; color: #a06000; }
 .badge-monthly { background: #fde8e8; color: #a02020; }
-
 .property-title { font-size: 22px; font-weight: 800; color: var(--navy); margin-bottom: 8px; letter-spacing: -0.5px; line-height: 1.4; }
 .property-addr { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
 .property-price { font-size: 28px; font-weight: 800; color: var(--text); margin-bottom: 28px; letter-spacing: -1px; }
-
-.meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-bottom: 28px; }
+.meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
 .meta-item { background: var(--bg); border-radius: 8px; padding: 14px 16px; }
 .meta-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
-.meta-value { font-size: 15px; font-weight: 700; color: var(--navy); }
-
-.description { background: var(--bg); border-radius: 8px; padding: 20px; }
+.meta-value { font-size: 14px; font-weight: 700; color: var(--navy); }
+.description { background: var(--bg); border-radius: 8px; padding: 20px; margin-bottom: 24px; }
 .desc-title { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 10px; }
 .description p { font-size: 13px; color: var(--text); line-height: 1.8; white-space: pre-wrap; }
-
+.map-section { margin-bottom: 24px; }
+#kakao-map { width: 100%; height: 300px; border-radius: 12px; border: 1px solid var(--border); margin-top: 10px; }
 .inquiry-box { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 24px; height: fit-content; position: sticky; top: 80px; }
 .inquiry-title { font-size: 15px; font-weight: 800; color: var(--navy); margin-bottom: 16px; }
 .inquiry-agent { display: flex; align-items: center; gap: 12px; padding: 14px; background: var(--bg); border-radius: 8px; margin-bottom: 20px; }
 .agent-avatar { font-size: 28px; }
 .agent-name { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 2px; }
 .agent-tel { font-size: 13px; color: var(--blue); font-weight: 600; }
-
 .form-group { margin-bottom: 14px; }
 .form-group label { display: block; font-size: 12px; font-weight: 600; color: var(--navy); margin-bottom: 6px; }
 .form-group input, .form-group textarea { width: 100%; font-family: Pretendard, sans-serif; font-size: 13px; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; outline: none; background: var(--bg); color: var(--text); transition: border-color 0.2s; resize: none; }
 .form-group input:focus, .form-group textarea:focus { border-color: var(--blue); background: var(--white); }
-
 .submit-btn { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 8px; padding: 13px; font-family: Pretendard, sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
 .submit-btn:hover { background: #1e4bc4; }
 .submit-btn:disabled { background: var(--muted); cursor: not-allowed; }
 .submit-done { margin-top: 12px; font-size: 12px; color: #1e7a1e; text-align: center; font-weight: 500; background: #e4f4e4; padding: 10px; border-radius: 8px; }
-
 .back-wrap { margin-top: 40px; }
 .back-btn { background: none; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 20px; font-family: Pretendard, sans-serif; font-size: 13px; color: var(--muted); cursor: pointer; }
 .back-btn:hover { border-color: var(--navy); color: var(--navy); }
 
-/* 반응형 */
 @media (max-width: 768px) {
   .detail-wrap { padding: 20px 16px; }
   .main-img { height: 240px; border-radius: 8px; }
@@ -200,6 +232,7 @@ onMounted(async () => {
   .property-price { font-size: 22px; margin-bottom: 20px; }
   .meta-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
   .meta-item { padding: 12px; }
-  .meta-value { font-size: 14px; }
+  .meta-value { font-size: 13px; }
+  #kakao-map { height: 220px; }
 }
 </style>

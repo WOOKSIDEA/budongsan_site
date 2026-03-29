@@ -82,7 +82,11 @@
           </div>
           <div class="form-group full">
             <label>주소 *</label>
-            <input v-model="form.address" type="text" placeholder="예: 경기도 김포시 구래동 OOO">
+            <div class="addr-wrap">
+              <input v-model="form.address" type="text" placeholder="아래 버튼으로 주소를 검색하세요" readonly>
+              <button type="button" class="addr-btn" @click="searchAddress">🔍 주소 검색</button>
+            </div>
+            <input v-model="form.address_detail" type="text" placeholder="상세주소 입력 (동/호수 등)" style="margin-top:8px">
           </div>
           <div class="form-group full">
             <label>매물 설명</label>
@@ -291,6 +295,14 @@ async function loadInquiries() {
   })
   inquiries.value = res.data
 }
+function searchAddress() {
+  new daum.Postcode({
+    oncomplete: (data) => {
+      form.value.address = data.roadAddress || data.jibunAddress
+    }
+  }).open()
+}
+
 function doLogout() {
   auth.logout()
   router.push('/')
@@ -376,6 +388,10 @@ onMounted(async () => {
 .save-btn { background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 13px 36px; font-family: Pretendard, sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
 .save-btn:hover { background: #0f1f3d; }
 .save-btn:disabled { background: var(--muted); cursor: not-allowed; }
+.addr-wrap { display: flex; gap: 8px; }
+.addr-wrap input { flex: 1; }
+.addr-btn { background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-family: Pretendard, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
+.addr-btn:hover { background: #0f1f3d; }
 .empty { text-align: center; padding: 80px 0; color: var(--muted); font-size: 14px; }
 
 /* 모바일 탭 */

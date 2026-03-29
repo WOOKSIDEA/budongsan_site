@@ -3,7 +3,7 @@ const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
 
-// 매물 전체 조회 (일반 사용자 - 노출 중인 것만)
+// 매물 전체 조회 (일반 사용자)
 router.get('/', async (req, res) => {
   try {
     const { type, min, max, search } = req.query;
@@ -24,7 +24,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 매물 전체 조회 (관리자 - 숨김 포함 전체)
+// 매물 전체 조회 (관리자 - 숨김 포함)
 router.get('/admin/all', auth, async (req, res) => {
   try {
     const result = await pool.query(
@@ -46,8 +46,7 @@ router.get('/:id', async (req, res) => {
       `SELECT p.*, array_agg(i.url ORDER BY i.order_index) FILTER (WHERE i.url IS NOT NULL) as images
        FROM properties p
        LEFT JOIN images i ON p.id = i.property_id
-       WHERE p.id = $1
-       GROUP BY p.id`,
+       WHERE p.id = $1 GROUP BY p.id`,
       [req.params.id]
     );
     if (result.rows.length === 0) return res.status(404).json({ error: '매물 없음' });
@@ -60,11 +59,18 @@ router.get('/:id', async (req, res) => {
 // 매물 등록 (관리자)
 router.post('/', auth, async (req, res) => {
   try {
-    const { title, price, price_type, property_type, area, rooms, address, description } = req.body;
+    const { title, price, price_type, property_type, area, rooms, bathrooms,
+            address, address_detail, description, floor, total_floors,
+            parking, move_in_date, building_year } = req.body;
     const result = await pool.query(
-      `INSERT INTO properties (title, price, price_type, property_type, area, rooms, address, description)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`,
-      [title, price, price_type, property_type, area, rooms, address, description]
+      `INSERT INTO properties
+        (title, price, price_type, property_type, area, rooms, bathrooms,
+         address, address_detail, description, floor, total_floors,
+         parking, move_in_date, building_year)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
+      [title, price, price_type, property_type, area, rooms, bathrooms,
+       address, address_detail, description, floor, total_floors,
+       parking, move_in_date, building_year]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -75,11 +81,18 @@ router.post('/', auth, async (req, res) => {
 // 매물 수정 (관리자)
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { title, price, price_type, property_type, area, rooms, address, description, is_active } = req.body;
+    const { title, price, price_type, property_type, area, rooms, bathrooms,
+            address, address_detail, description, floor, total_floors,
+            parking, move_in_date, building_year, is_active } = req.body;
     const result = await pool.query(
-      `UPDATE properties SET title=$1, price=$2, price_type=$3, property_type=$4, area=$5, rooms=$6,
-       address=$7, description=$8, is_active=$9 WHERE id=$10 RETURNING *`,
-      [title, price, price_type, property_type, area, rooms, address, description, is_active, req.params.id]
+      `UPDATE properties SET
+        title=$1, price=$2, price_type=$3, property_type=$4, area=$5, rooms=$6, bathrooms=$7,
+        address=$8, address_detail=$9, description=$10, floor=$11, total_floors=$12,
+        parking=$13, move_in_date=$14, building_year=$15, is_active=$16
+       WHERE id=$17 RETURNING *`,
+      [title, price, price_type, property_type, area, rooms, bathrooms,
+       address, address_detail, description, floor, total_floors,
+       parking, move_in_date, building_year, is_active, req.params.id]
     );
     res.json(result.rows[0]);
   } catch (err) {
