@@ -3,7 +3,6 @@ const router = express.Router();
 const pool = require('../db');
 const auth = require('../middleware/auth');
 
-// 매물 전체 조회 (일반 사용자)
 router.get('/', async (req, res) => {
   try {
     const { type, min, max, search } = req.query;
@@ -24,7 +23,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-// 매물 전체 조회 (관리자 - 숨김 포함)
 router.get('/admin/all', auth, async (req, res) => {
   try {
     const result = await pool.query(
@@ -39,7 +37,6 @@ router.get('/admin/all', auth, async (req, res) => {
   }
 });
 
-// 매물 단건 조회
 router.get('/:id', async (req, res) => {
   try {
     const result = await pool.query(
@@ -56,21 +53,20 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// 매물 등록 (관리자)
 router.post('/', auth, async (req, res) => {
   try {
-    const { title, price, price_type, property_type, area, rooms, bathrooms,
-            address, address_detail, description, floor, total_floors,
-            parking, move_in_date, building_year } = req.body;
+    const { title, price, deposit, monthly_rent, price_type, property_type,
+            area, rooms, bathrooms, address, address_detail, description,
+            floor, total_floors, parking, move_in_date, building_year } = req.body;
     const result = await pool.query(
       `INSERT INTO properties
-        (title, price, price_type, property_type, area, rooms, bathrooms,
-         address, address_detail, description, floor, total_floors,
-         parking, move_in_date, building_year)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
-      [title, price, price_type, property_type, area, rooms, bathrooms,
-       address, address_detail, description, floor, total_floors,
-       parking, move_in_date, building_year]
+        (title, price, deposit, monthly_rent, price_type, property_type,
+         area, rooms, bathrooms, address, address_detail, description,
+         floor, total_floors, parking, move_in_date, building_year)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING *`,
+      [title, price, deposit, monthly_rent, price_type, property_type,
+       area, rooms, bathrooms, address, address_detail, description,
+       floor, total_floors, parking, move_in_date, building_year]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -78,21 +74,20 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
-// 매물 수정 (관리자)
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { title, price, price_type, property_type, area, rooms, bathrooms,
-            address, address_detail, description, floor, total_floors,
-            parking, move_in_date, building_year, is_active } = req.body;
+    const { title, price, deposit, monthly_rent, price_type, property_type,
+            area, rooms, bathrooms, address, address_detail, description,
+            floor, total_floors, parking, move_in_date, building_year, is_active } = req.body;
     const result = await pool.query(
       `UPDATE properties SET
-        title=$1, price=$2, price_type=$3, property_type=$4, area=$5, rooms=$6, bathrooms=$7,
-        address=$8, address_detail=$9, description=$10, floor=$11, total_floors=$12,
-        parking=$13, move_in_date=$14, building_year=$15, is_active=$16
-       WHERE id=$17 RETURNING *`,
-      [title, price, price_type, property_type, area, rooms, bathrooms,
-       address, address_detail, description, floor, total_floors,
-       parking, move_in_date, building_year, is_active, req.params.id]
+        title=$1, price=$2, deposit=$3, monthly_rent=$4, price_type=$5, property_type=$6,
+        area=$7, rooms=$8, bathrooms=$9, address=$10, address_detail=$11, description=$12,
+        floor=$13, total_floors=$14, parking=$15, move_in_date=$16, building_year=$17, is_active=$18
+       WHERE id=$19 RETURNING *`,
+      [title, price, deposit, monthly_rent, price_type, property_type,
+       area, rooms, bathrooms, address, address_detail, description,
+       floor, total_floors, parking, move_in_date, building_year, is_active, req.params.id]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -100,7 +95,6 @@ router.put('/:id', auth, async (req, res) => {
   }
 });
 
-// 매물 삭제 (관리자)
 router.delete('/:id', auth, async (req, res) => {
   try {
     await pool.query('DELETE FROM properties WHERE id=$1', [req.params.id]);

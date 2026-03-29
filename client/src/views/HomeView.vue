@@ -1,6 +1,5 @@
 <template>
   <div>
-    <!-- 히어로 -->
     <div class="hero">
       <div class="hero-tag">📍 경기도 김포시 구래동</div>
       <h1>믿을 수 있는 동네 부동산<br><em>구래부동산</em>입니다</h1>
@@ -11,26 +10,34 @@
       </div>
     </div>
 
-    <!-- 통계 -->
-    <div class="stats-row">
-      <div class="stat"><div class="stat-icon">🏠</div><div><div class="stat-num">{{ store.properties.length }}</div><div class="stat-label">현재 매물</div></div></div>
-      <div class="stat"><div class="stat-icon">✅</div><div><div class="stat-num">1,240</div><div class="stat-label">거래 완료</div></div></div>
-      <div class="stat"><div class="stat-icon">⭐</div><div><div class="stat-num">20년</div><div class="stat-label">영업 경력</div></div></div>
-      <div class="stat phone-stat"><div class="stat-icon">📞</div><div><div class="stat-num">031-000-0000</div><div class="stat-label">언제든 문의하세요</div></div></div>
+    <div class="contact-row">
+      <a class="contact-btn kakao" href="#" target="_blank">
+        <div class="contact-icon">💬</div>
+        <div>
+          <span class="contact-title">카카오톡 문의</span>
+          <span class="contact-sub">오픈채팅으로 빠르게</span>
+        </div>
+      </a>
+      <a class="contact-btn phone" href="tel:031-000-0000">
+        <div class="contact-icon">📞</div>
+        <div>
+          <span class="contact-title">전화 문의</span>
+          <span class="contact-sub">031-000-0000</span>
+        </div>
+      </a>
     </div>
 
-    <!-- 필터 -->
     <div class="filter-area">
-      <div class="cat-tabs">
+      <div class="cat-cards">
         <div v-for="cat in categories" :key="cat.value"
-          class="cat-tab" :class="{ active: selectedCat === cat.value }"
+          class="cat-card" :class="{ active: selectedCat === cat.value }"
           @click="selectCat(cat.value)">
-          <span>{{ cat.icon }}</span> {{ cat.label }}
-          <span class="cat-count">{{ catCount(cat.value) }}</span>
+          <div class="cat-card-icon">{{ cat.icon }}</div>
+          <div class="cat-card-label">{{ cat.label }}</div>
+          <div class="cat-card-count">{{ catCount(cat.value) }}개</div>
         </div>
       </div>
       <div class="deal-tabs">
-        <span class="deal-label">거래유형</span>
         <div v-for="deal in currentDeals" :key="deal"
           class="deal-tab" :class="{ active: selectedDeal === deal }"
           @click="selectedDeal = deal">
@@ -39,7 +46,6 @@
       </div>
     </div>
 
-    <!-- 매물 목록 -->
     <div class="listings">
       <div class="listings-header">
         <div class="listings-title">{{ currentCatLabel }} 매물</div>
@@ -84,10 +90,10 @@ const currentDeals = computed(() =>
 const currentCatLabel = computed(() =>
   categories.find(c => c.value === selectedCat.value)?.label || ''
 )
-
 function selectCat(val) {
   selectedCat.value = val
   selectedDeal.value = '전체'
+  searchKeyword.value = ''
 }
 function catCount(cat) {
   return store.properties.filter(p => p.property_type === cat).length
@@ -106,11 +112,7 @@ const filteredProperties = computed(() => {
   })
 })
 function doSearch() {
-  // searchKeyword가 바뀌면 filteredProperties computed가 자동으로 필터링
-  // 아무 카테고리에서도 검색 가능하도록 전체로 초기화
-  if (searchKeyword.value) {
-    selectedDeal.value = '전체'
-  }
+  if (searchKeyword.value) selectedDeal.value = '전체'
 }
 function goDetail(id) { router.push("/property/" + id) }
 onMounted(() => { store.fetchAll() })
@@ -128,24 +130,31 @@ onMounted(() => { store.fetchAll() })
 .search-wrap button { background: var(--blue); color: #fff; border: none; border-radius: 8px; padding: 11px 24px; font-family: Pretendard, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .search-wrap button:hover { background: #1e4bc4; }
 
-.stats-row { display: flex; background: var(--white); border-bottom: 1px solid var(--border); }
-.stat { flex: 1; padding: 16px 28px; border-right: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
-.stat:last-child { border-right: none; }
-.stat-icon { width: 36px; height: 36px; background: var(--blue-light); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-.stat-num { font-size: 17px; font-weight: 800; color: var(--navy); line-height: 1; margin-bottom: 3px; letter-spacing: -0.5px; }
-.stat-label { font-size: 11px; color: var(--muted); }
+.contact-row { display: flex; gap: 12px; padding: 16px 40px; background: var(--white); border-bottom: 1px solid var(--border); }
+.contact-btn { flex: 1; border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 14px; cursor: pointer; border: none; font-family: Pretendard, sans-serif; transition: all 0.2s; text-decoration: none; }
+.contact-btn.kakao { background: #FEE500; }
+.contact-btn.kakao:hover { background: #f5dc00; }
+.contact-btn.phone { background: #e8f0ff; }
+.contact-btn.phone:hover { background: #d4e4fb; }
+.contact-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; background: rgba(0,0,0,0.08); }
+.contact-title { font-size: 14px; font-weight: 700; color: #1b1b1b; display: block; margin-bottom: 2px; }
+.contact-sub { font-size: 11px; color: rgba(0,0,0,0.5); display: block; }
 
-.filter-area { background: var(--white); border-bottom: 1px solid var(--border); padding: 0 40px; position: sticky; top: 60px; z-index: 90; box-shadow: 0 2px 8px rgba(0,0,0,0.04); touch-action: pan-x; }
-.cat-tabs { display: flex; border-bottom: 1px solid var(--border); overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-.cat-tabs::-webkit-scrollbar { display: none; }
-.cat-tab { display: flex; align-items: center; gap: 6px; padding: 14px 22px; font-size: 13px; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; white-space: nowrap; flex-shrink: 0; }
-.cat-tab:hover { color: var(--navy); }
-.cat-tab.active { color: var(--navy); font-weight: 700; border-bottom-color: var(--blue); }
-.cat-count { font-size: 10px; background: var(--bg); color: var(--muted); padding: 2px 7px; border-radius: 10px; font-weight: 500; }
-.cat-tab.active .cat-count { background: var(--blue); color: #fff; }
-.deal-tabs { display: flex; gap: 6px; padding: 12px 0; align-items: center; overflow-x: auto; }
+.filter-area { background: var(--white); border-bottom: 1px solid var(--border); padding: 16px 40px 0; position: sticky; top: 60px; z-index: 90; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+.cat-cards { display: flex; gap: 10px; margin-bottom: 12px; }
+.cat-card { flex: 1; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; padding: 14px 12px; text-align: center; cursor: pointer; transition: all 0.2s; user-select: none; -webkit-user-select: none; }
+.cat-card:hover { border-color: var(--navy); }
+.cat-card.active { border-color: var(--navy); background: var(--navy); }
+.cat-card-icon { font-size: 22px; margin-bottom: 6px; }
+.cat-card-label { font-size: 12px; font-weight: 700; color: var(--navy); }
+.cat-card.active .cat-card-label { color: #fff; }
+.cat-card-count { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.cat-card.active .cat-card-count { color: rgba(255,255,255,0.6); }
+
+.deal-tabs { display: flex; gap: 8px; padding: 12px 0; align-items: center; overflow-x: auto; scrollbar-width: none; touch-action: pan-x; }
+.deal-tabs::-webkit-scrollbar { display: none; }
 .deal-label { font-size: 11px; color: var(--muted); margin-right: 4px; font-weight: 500; white-space: nowrap; }
-.deal-tab { padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: var(--white); color: var(--muted); transition: all 0.15s; white-space: nowrap; user-select: none; -webkit-user-select: none; }
+.deal-tab { padding: 8px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; border: 1.5px solid var(--border); background: var(--white); color: var(--muted); transition: all 0.15s; white-space: nowrap; user-select: none; -webkit-user-select: none; }
 .deal-tab:hover { border-color: var(--navy); color: var(--navy); }
 .deal-tab.active { background: var(--navy); color: #fff; border-color: var(--navy); }
 
@@ -156,22 +165,23 @@ onMounted(() => { store.fetchAll() })
 .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 .empty { text-align: center; padding: 80px 0; color: var(--muted); font-size: 14px; }
 
-/* 반응형 */
 @media (max-width: 768px) {
   .hero { padding: 32px 20px 28px; }
   .hero h1 { font-size: 22px; }
   .search-wrap { max-width: 100%; }
   .search-wrap button { padding: 11px 16px; }
-
-  .stats-row { flex-wrap: wrap; }
-  .stat { flex: 1 1 45%; border-right: none; border-bottom: 1px solid var(--border); padding: 14px 16px; }
-  .phone-stat { flex: 1 1 100%; }
-  .stat-num { font-size: 14px; }
-
-  .filter-area { padding: 0 16px; top: 60px; }
-  .cat-tab { padding: 12px 14px; font-size: 12px; }
-  .deal-tabs { padding: 10px 0; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
+  .contact-row { padding: 12px 16px; gap: 8px; }
+  .contact-btn { padding: 12px 14px; gap: 10px; }
+  .contact-icon { width: 34px; height: 34px; font-size: 16px; }
+  .contact-title { font-size: 13px; }
+  .contact-sub { font-size: 10px; }
+  .filter-area { padding: 12px 16px 0; top: 60px; }
+  .cat-cards { gap: 6px; }
+  .cat-card { padding: 10px 6px; border-radius: 10px; }
+  .cat-card-icon { font-size: 18px; margin-bottom: 4px; }
+  .cat-card-label { font-size: 11px; }
+  .cat-card-count { display: none; }
+  .deal-tabs { padding: 0; }
   .listings { padding: 20px 16px; }
   .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }

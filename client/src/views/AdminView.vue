@@ -10,7 +10,6 @@
       </nav>
       <button class="logout-btn" @click="doLogout">로그아웃</button>
     </div>
-    <!-- 모바일 탭 -->
     <div class="mobile-tabs">
       <div class="mobile-tab" :class="{ active: tab === 'list' }" @click="tab = 'list'">📋 목록</div>
       <div class="mobile-tab" :class="{ active: tab === 'add' }" @click="openAdd">➕ 등록</div>
@@ -18,6 +17,8 @@
       <div class="mobile-tab logout" @click="doLogout">로그아웃</div>
     </div>
     <div class="main-content">
+
+      <!-- 매물 목록 -->
       <div v-if="tab === 'list'">
         <div class="content-header">
           <div class="content-title">매물 목록</div>
@@ -27,9 +28,10 @@
         <div v-else-if="store.adminProperties.length === 0" class="empty">등록된 매물이 없습니다.</div>
         <div v-else class="property-table">
           <div class="table-header">
-            <span>종류</span><span>제목</span><span>거래</span><span>가격</span><span>노출</span><span>관리</span>
+            <span>번호</span><span>종류</span><span>제목</span><span>거래</span><span>가격</span><span>노출</span><span>관리</span>
           </div>
           <div v-for="p in store.adminProperties" :key="p.id" class="table-row">
+            <span class="row-num">No.{{ p.property_number }}</span>
             <span><span class="badge badge-type">{{ p.property_type }}</span></span>
             <span class="row-title">{{ p.title }}</span>
             <span><span class="badge" :class="dealClass(p.price_type)">{{ p.price_type }}</span></span>
@@ -46,85 +48,157 @@
           </div>
         </div>
       </div>
+
+      <!-- 매물 등록/수정 폼 -->
       <div v-if="tab === 'add' || tab === 'edit'">
         <div class="content-header">
           <div class="content-title">{{ tab === 'add' ? '매물 등록' : '매물 수정' }}</div>
           <button class="cancel-btn" @click="tab = 'list'">취소</button>
         </div>
-        <div class="form-grid">
-          <div class="form-group full">
-            <label>매물명 *</label>
-            <input v-model="form.title" type="text" placeholder="예: 래미안 구래 아파트 고층 전망 좋은 집">
+        <div class="new-form-wrap">
+
+          <!-- 섹션 1 -->
+          <div class="new-section-header">
+            <div class="section-num">1</div>
+            <div class="section-title-txt">기본 정보</div>
           </div>
-          <div class="form-group">
-            <label>물건 종류 *</label>
-            <select v-model="form.property_type">
-              <option>아파트</option><option>오피스텔</option><option>상가</option><option>기타</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>거래 유형 *</label>
-            <select v-model="form.price_type">
-              <option v-for="d in availableDeals" :key="d">{{ d }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>가격 (원) *</label>
-            <input v-model="form.price" type="number" placeholder="예: 520000000">
-          </div>
-          <div class="form-group">
-            <label>면적 (㎡)</label>
-            <input v-model="form.area" type="number" placeholder="예: 84.5">
-          </div>
-          <div class="form-group">
-            <label>방 개수</label>
-            <input v-model="form.rooms" type="number" placeholder="예: 3">
-          </div>
-          <div class="form-group full">
-            <label>주소 *</label>
-            <div class="addr-wrap">
-              <input v-model="form.address" type="text" placeholder="아래 버튼으로 주소를 검색하세요" readonly>
-              <button type="button" class="addr-btn" @click="searchAddress">🔍 주소 검색</button>
+          <div class="new-form-grid">
+            <div class="new-form-item full">
+              <label>매물명</label>
+              <input v-model="form.title" type="text" placeholder="예: 래미안 구래 아파트 고층 전망 좋은 집">
             </div>
-            <input v-model="form.address_detail" type="text" placeholder="상세주소 입력 (동/호수 등)" style="margin-top:8px">
-          </div>
-          <div class="form-group full">
-            <label>매물 설명</label>
-            <textarea v-model="form.description" rows="5" placeholder="매물에 대한 상세 설명을 입력하세요."></textarea>
-          </div>
-          <div class="form-group full" v-if="tab === 'edit'">
-            <label>노출 상태</label>
-            <div class="toggle-wrap">
-              <label class="toggle">
-                <input type="checkbox" v-model="form.is_active">
-                <span class="slider"></span>
-              </label>
-              <span class="toggle-label">{{ form.is_active ? '노출 중' : '숨김' }}</span>
+            <div class="new-form-item">
+              <label>물건 종류</label>
+              <select v-model="form.property_type">
+                <option>아파트</option><option>오피스텔</option><option>상가</option><option>기타</option>
+              </select>
+            </div>
+            <div class="new-form-item">
+              <label>거래 유형</label>
+              <select v-model="form.price_type">
+                <option v-for="d in availableDeals" :key="d">{{ d }}</option>
+              </select>
+            </div>
+            <div class="new-form-item full" v-if="form.price_type !== '월세'">
+              <label>가격 (원)</label>
+              <input v-model="form.price" type="number" placeholder="예: 170000000" @input="updatePriceKorean">
+              <div class="price-korean">{{ priceKorean }}</div>
+            </div>
+            <div class="new-form-item full" v-if="form.price_type === '월세'">
+              <label>보증금 / 월세</label>
+              <div style="display:flex;gap:8px;margin-bottom:8px">
+                <div style="flex:1">
+                  <input v-model="form.deposit" type="number" placeholder="보증금 예: 50000000" @input="updateDepositKorean">
+                  <div class="price-korean">{{ depositKorean }}</div>
+                </div>
+                <div style="flex:1">
+                  <input v-model="form.monthly_rent" type="number" placeholder="월세 예: 300000" @input="updateMonthlyKorean">
+                  <div class="price-korean">{{ monthlyKorean }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="new-form-item full">
+              <label>주소</label>
+              <div class="addr-wrap">
+                <input v-model="form.address" type="text" placeholder="아래 버튼으로 주소를 검색하세요" readonly>
+                <button type="button" class="addr-btn" @click="searchAddress">🔍 주소 검색</button>
+              </div>
+              <input v-model="form.address_detail" type="text" placeholder="상세주소 입력 (동/호수 등)" style="margin-top:8px">
             </div>
           </div>
-          <div class="form-group full">
-            <label>매물 사진 (최대 10장)</label>
-            <div class="upload-area" @click="triggerUpload" @dragover.prevent @drop.prevent="onDrop">
-              <div class="upload-icon">📷</div>
-              <div class="upload-text">클릭하거나 사진을 여기에 드래그하세요</div>
-              <div class="upload-sub">JPG, PNG, WEBP · 최대 10MB</div>
-              <input ref="fileInput" type="file" multiple accept="image/*" style="display:none" @change="onFileChange">
+
+          <!-- 섹션 2 -->
+          <div class="new-section-header">
+            <div class="section-num">2</div>
+            <div class="section-title-txt">상세 정보</div>
+          </div>
+          <div class="new-form-grid">
+            <div class="new-form-item">
+              <label>면적 (㎡)</label>
+              <input v-model="form.area" type="number" placeholder="예: 84.5">
             </div>
-            <div v-if="previewImages.length > 0" class="preview-grid">
-              <div v-for="(img, i) in previewImages" :key="i" class="preview-item">
-                <img :src="img.url" alt="">
-                <button class="remove-img" @click="removeImage(i, img)">✕</button>
-                <div v-if="img.uploading" class="uploading-overlay">업로드 중...</div>
+            <div class="new-form-item">
+              <label>방 수 / 화장실 수</label>
+              <div style="display:flex;gap:8px">
+                <input v-model="form.rooms" type="number" placeholder="방 3">
+                <input v-model="form.bathrooms" type="number" placeholder="화 2">
+              </div>
+            </div>
+            <div class="new-form-item">
+              <label>층수 / 전체 층수</label>
+              <div style="display:flex;gap:8px">
+                <input v-model="form.floor" type="number" placeholder="5층">
+                <input v-model="form.total_floors" type="number" placeholder="전체 15층">
+              </div>
+            </div>
+            <div class="new-form-item">
+              <label>준공연도</label>
+              <input v-model="form.building_year" type="number" placeholder="예: 2015">
+            </div>
+            <div class="new-form-item">
+              <label>입주가능일</label>
+              <input v-model="form.move_in_date" type="text" placeholder="예: 즉시입주">
+            </div>
+            <div class="new-form-item">
+              <label>주차</label>
+              <div class="toggle-wrap" style="margin-top:8px">
+                <label class="toggle">
+                  <input type="checkbox" v-model="form.parking">
+                  <span class="slider"></span>
+                </label>
+                <span class="toggle-label">{{ form.parking ? '가능' : '불가' }}</span>
+              </div>
+            </div>
+            <div class="new-form-item full" v-if="tab === 'edit'">
+              <label>노출 상태</label>
+              <div class="toggle-wrap">
+                <label class="toggle">
+                  <input type="checkbox" v-model="form.is_active">
+                  <span class="slider"></span>
+                </label>
+                <span class="toggle-label">{{ form.is_active ? '노출 중' : '숨김' }}</span>
               </div>
             </div>
           </div>
-        </div>
-        <div class="form-actions">
-          <button class="save-btn" @click="saveProperty" :disabled="saving || isUploading">
-            {{ saving ? '저장 중...' : isUploading ? '사진 업로드 중...' : (tab === 'add' ? '등록하기' : '수정 저장') }}
-          </button>
+
+          <!-- 섹션 3 -->
+          <div class="new-section-header">
+            <div class="section-num">3</div>
+            <div class="section-title-txt">매물 설명 및 사진</div>
+          </div>
+          <div class="new-form-grid">
+            <div class="new-form-item full">
+              <label>매물 설명</label>
+              <textarea v-model="form.description" rows="12" placeholder="매물에 대한 상세 설명을 입력하세요." style="min-height:240px"></textarea>
+            </div>
+            <div class="new-form-item full last">
+              <label>매물 사진 (최대 10장)</label>
+              <div class="upload-area" @click="triggerUpload" @dragover.prevent @drop.prevent="onDrop">
+                <div class="upload-icon">📷</div>
+                <div class="upload-text">클릭하거나 사진을 여기에 드래그하세요</div>
+                <div class="upload-sub">JPG, PNG, WEBP · 최대 10MB</div>
+                <input ref="fileInput" type="file" multiple accept="image/*" style="display:none" @change="onFileChange">
+              </div>
+              <div v-if="previewImages.length > 0" class="preview-grid">
+                <div v-for="(img, i) in previewImages" :key="i" class="preview-item">
+                  <img :src="img.url" alt="">
+                  <button class="remove-img" @click="removeImage(i, img)">✕</button>
+                  <div v-if="img.uploading" class="uploading-overlay">업로드 중...</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="new-form-actions">
+            <button class="cancel-btn" @click="tab = 'list'">취소</button>
+            <button class="save-btn" @click="saveProperty" :disabled="saving || isUploading">
+              {{ saving ? '저장 중...' : isUploading ? '사진 업로드 중...' : (tab === 'add' ? '등록하기' : '수정 저장') }}
+            </button>
+          </div>
         </div>
       </div>
+
+      <!-- 문의 내역 -->
       <div v-if="tab === 'inquiry'">
         <div class="content-header">
           <div class="content-title">문의 내역</div>
@@ -143,6 +217,7 @@
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </template>
@@ -164,6 +239,9 @@ const editId = ref(null)
 const fileInput = ref(null)
 const previewImages = ref([])
 const togglingId = ref(null)
+const priceKorean = ref('금액을 입력하면 한글로 표시됩니다')
+const depositKorean = ref('보증금을 입력하세요')
+const monthlyKorean = ref('월세를 입력하세요')
 
 const dealMap = {
   '아파트':   ['매매','전세','월세'],
@@ -171,13 +249,42 @@ const dealMap = {
   '상가':     ['매매','월세'],
   '기타':     ['매매','월세'],
 }
+
 const emptyForm = () => ({
   title: '', property_type: '아파트', price_type: '매매',
-  price: '', area: '', rooms: '', address: '', description: '', is_active: true
+  price: '', deposit: '', monthly_rent: '', area: '', rooms: '', bathrooms: 1,
+  address: '', address_detail: '', description: '',
+  floor: '', total_floors: '', parking: false,
+  move_in_date: '', building_year: '', is_active: true
 })
+
 const form = ref(emptyForm())
 const availableDeals = computed(() => dealMap[form.value.property_type] || ['매매'])
 const isUploading = computed(() => previewImages.value.some(i => i.uploading))
+
+function toKoreanPrice(num) {
+  if (!num || isNaN(num)) return ''
+  const eok = Math.floor(num / 100000000)
+  const man = Math.floor((num % 100000000) / 10000)
+  let result = ''
+  if (eok > 0) result += eok + '억 '
+  if (man > 0) result += man.toLocaleString() + '만'
+  return result + '원'
+}
+function updatePriceKorean() {
+  const val = toKoreanPrice(parseInt(form.value.price))
+  priceKorean.value = val ? '→ ' + val : '금액을 입력하면 한글로 표시됩니다'
+}
+function updateDepositKorean() {
+  const val = toKoreanPrice(parseInt(form.value.deposit))
+  depositKorean.value = val ? '보증금 → ' + val : '보증금을 입력하세요'
+}
+function updateMonthlyKorean() {
+  const num = parseInt(form.value.monthly_rent)
+  if (!num || isNaN(num)) { monthlyKorean.value = '월세를 입력하세요'; return }
+  const man = Math.floor(num / 10000)
+  monthlyKorean.value = '월세 → ' + man.toLocaleString() + '만원'
+}
 
 function dealClass(type) {
   return { '매매': 'badge-sell', '전세': 'badge-jeonse', '월세': 'badge-monthly' }[type] || ''
@@ -217,8 +324,8 @@ function handleFiles(files) {
 async function removeImage(i, img) {
   if (img.dbId) {
     try {
-      await axios.delete("${import.meta.env.VITE_API_URL}/api/images/" + img.dbId, {
-        headers: { Authorization: "Bearer " + auth.token }
+      await axios.delete(import.meta.env.VITE_API_URL + '/api/images/' + img.dbId, {
+        headers: { Authorization: 'Bearer ' + auth.token }
       })
     } catch (e) { console.error(e) }
   }
@@ -231,8 +338,8 @@ async function uploadImages(propertyId) {
   pending.forEach(img => formData.append('images', img.file))
   pending.forEach(img => { img.uploading = true })
   try {
-    const res = await axios.post("${import.meta.env.VITE_API_URL}/api/images/" + propertyId, formData, {
-      headers: { Authorization: "Bearer " + auth.token, 'Content-Type': 'multipart/form-data' }
+    const res = await axios.post(import.meta.env.VITE_API_URL + '/api/images/' + propertyId, formData, {
+      headers: { Authorization: 'Bearer ' + auth.token, 'Content-Type': 'multipart/form-data' }
     })
     pending.forEach((img, i) => {
       img.uploading = false
@@ -248,14 +355,18 @@ function openAdd() {
   form.value = emptyForm()
   editId.value = null
   previewImages.value = []
+  priceKorean.value = '금액을 입력하면 한글로 표시됩니다'
+  depositKorean.value = '보증금을 입력하세요'
+  monthlyKorean.value = '월세를 입력하세요'
   tab.value = 'add'
 }
 async function openEdit(p) {
   form.value = { ...p }
   editId.value = p.id
+  updatePriceKorean()
   tab.value = 'edit'
   try {
-    const res = await axios.get("${import.meta.env.VITE_API_URL}/api/images/" + p.id)
+    const res = await axios.get(import.meta.env.VITE_API_URL + '/api/images/' + p.id)
     previewImages.value = res.data.map(img => ({
       url: img.url, file: null, uploading: false, uploaded: true, dbId: img.id
     }))
@@ -290,8 +401,8 @@ async function deleteProperty(id) {
   } catch (e) { alert('삭제 중 오류가 발생했습니다.') }
 }
 async function loadInquiries() {
-  const res = await axios.get('${import.meta.env.VITE_API_URL}/api/inquiries', {
-    headers: { Authorization: "Bearer " + auth.token }
+  const res = await axios.get(import.meta.env.VITE_API_URL + '/api/inquiries', {
+    headers: { Authorization: 'Bearer ' + auth.token }
   })
   inquiries.value = res.data
 }
@@ -307,7 +418,6 @@ function searchAddress() {
   }
   document.head.appendChild(script)
 }
-
 function doLogout() {
   auth.logout()
   router.push('/')
@@ -338,10 +448,10 @@ onMounted(async () => {
 .cancel-btn:hover { border-color: var(--navy); color: var(--navy); }
 .property-table, .inquiry-table { background: var(--white); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
 .table-header { display: grid; padding: 12px 20px; background: var(--bg); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; color: var(--muted); }
-.property-table .table-header { grid-template-columns: 90px 1fr 80px 120px 90px 120px; gap: 12px; }
+.property-table .table-header { grid-template-columns: 60px 90px 1fr 80px 120px 90px 120px; gap: 12px; }
 .inquiry-table .table-header { grid-template-columns: 180px 80px 120px 1fr 120px; gap: 12px; }
 .table-row { display: grid; padding: 14px 20px; border-bottom: 1px solid var(--border); align-items: center; font-size: 13px; transition: background 0.15s; }
-.property-table .table-row { grid-template-columns: 90px 1fr 80px 120px 90px 120px; gap: 12px; }
+.property-table .table-row { grid-template-columns: 60px 90px 1fr 80px 120px 90px 120px; gap: 12px; }
 .inquiry-table .table-row { grid-template-columns: 180px 80px 120px 1fr 120px; gap: 12px; }
 .table-row:last-child { border-bottom: none; }
 .table-row:hover { background: var(--bg); }
@@ -350,6 +460,7 @@ onMounted(async () => {
 .badge-sell { background: #e4f4e4; color: #1e7a1e; }
 .badge-jeonse { background: #fff4e0; color: #a06000; }
 .badge-monthly { background: #fde8e8; color: #a02020; }
+.row-num { font-size: 11px; font-weight: 700; color: var(--blue); }
 .row-title { font-weight: 500; color: var(--navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .row-price { font-weight: 700; color: var(--text); font-size: 12px; }
 .row-msg { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
@@ -365,12 +476,33 @@ onMounted(async () => {
 .edit-btn:hover { background: #d4e4fb; }
 .delete-btn { background: #fde8e8; color: #a02020; border: none; border-radius: 6px; padding: 5px 12px; font-family: Pretendard, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
 .delete-btn:hover { background: #f9c8c8; }
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; background: var(--white); border-radius: 12px; border: 1px solid var(--border); padding: 28px; }
-.form-group { display: flex; flex-direction: column; gap: 6px; }
-.form-group.full { grid-column: 1 / -1; }
-.form-group label { font-size: 12px; font-weight: 700; color: var(--navy); }
-.form-group input, .form-group select, .form-group textarea { font-family: Pretendard, sans-serif; font-size: 13px; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; outline: none; background: var(--bg); color: var(--text); transition: border-color 0.2s; resize: none; }
-.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--blue); background: var(--white); }
+
+.new-form-wrap { background: var(--white); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+.new-section-header { padding: 14px 24px; background: var(--bg); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.new-section-header:first-child { border-top: none; }
+.section-num { width: 22px; height: 22px; background: var(--navy); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+.section-title-txt { font-size: 13px; font-weight: 700; color: var(--navy); }
+.new-form-grid { display: grid; grid-template-columns: 1fr 1fr; }
+.new-form-item { padding: 16px 24px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); }
+.new-form-item:nth-child(even) { border-right: none; }
+.new-form-item.full { grid-column: 1 / -1; border-right: none; }
+.new-form-item.last { border-bottom: none; }
+.new-form-item label { display: block; font-size: 12px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+.new-form-item input, .new-form-item select, .new-form-item textarea { width: 100%; font-family: Pretendard, sans-serif; font-size: 13px; border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 14px; outline: none; background: var(--bg); color: var(--text); transition: border-color 0.2s; resize: none; }
+.new-form-item input:focus, .new-form-item select:focus, .new-form-item textarea:focus { border-color: var(--blue); background: var(--white); }
+.price-korean { font-size: 13px; font-weight: 700; color: var(--blue); margin-top: 8px; min-height: 20px; }
+.addr-wrap { display: flex; gap: 8px; }
+.addr-wrap input { flex: 1; }
+.addr-btn { background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 10px 14px; font-family: Pretendard, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.addr-btn:hover { background: #0f1f3d; }
+.toggle-wrap { display: flex; align-items: center; gap: 10px; }
+.toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border); border-radius: 24px; transition: 0.3s; }
+.slider:before { position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
+.toggle input:checked + .slider { background: var(--blue); }
+.toggle input:checked + .slider:before { transform: translateX(20px); }
+.toggle-label { font-size: 13px; font-weight: 600; color: var(--navy); }
 .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 36px; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--bg); }
 .upload-area:hover { border-color: var(--blue); background: var(--blue-light); }
 .upload-icon { font-size: 32px; margin-bottom: 10px; }
@@ -381,76 +513,34 @@ onMounted(async () => {
 .preview-item img { width: 100%; height: 100%; object-fit: cover; }
 .remove-img { position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.6); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .uploading-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: #fff; font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
-.toggle-wrap { display: flex; align-items: center; gap: 10px; }
-.toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
-.toggle input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: var(--border); border-radius: 24px; transition: 0.3s; }
-.slider:before { position: absolute; content: ''; height: 18px; width: 18px; left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s; }
-.toggle input:checked + .slider { background: var(--blue); }
-.toggle input:checked + .slider:before { transform: translateX(20px); }
-.toggle-label { font-size: 13px; font-weight: 600; color: var(--navy); }
-.form-actions { margin-top: 20px; }
+.new-form-actions { padding: 20px 24px; background: var(--bg); border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
 .save-btn { background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 13px 36px; font-family: Pretendard, sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
 .save-btn:hover { background: #0f1f3d; }
 .save-btn:disabled { background: var(--muted); cursor: not-allowed; }
-.addr-wrap { display: flex; gap: 8px; }
-.addr-wrap input { flex: 1; }
-.addr-btn { background: var(--navy); color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-family: Pretendard, sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
-.addr-btn:hover { background: #0f1f3d; }
 .empty { text-align: center; padding: 80px 0; color: var(--muted); font-size: 14px; }
-
-/* 모바일 탭 */
 .mobile-tabs { display: none; }
-
-/* 반응형 */
 @media (max-width: 768px) {
   .admin-wrap { flex-direction: column; }
   .sidebar { display: none; }
-  .mobile-tabs {
-    display: flex;
-    background: var(--navy);
-    padding: 0;
-    overflow-x: auto;
-  }
-  .mobile-tab {
-    flex: 1;
-    padding: 14px 8px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 500;
-    color: rgba(255,255,255,0.6);
-    cursor: pointer;
-    white-space: nowrap;
-    border-bottom: 2px solid transparent;
-    transition: all 0.15s;
-  }
+  .mobile-tabs { display: flex; background: var(--navy); }
+  .mobile-tab { flex: 1; padding: 14px 8px; text-align: center; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.6); cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; transition: all 0.15s; }
   .mobile-tab:hover { color: #fff; }
   .mobile-tab.active { color: #fff; font-weight: 700; border-bottom-color: #fff; }
   .mobile-tab.logout { color: rgba(255,255,255,0.4); font-size: 11px; }
-
   .main-content { padding: 20px 16px; }
   .content-title { font-size: 16px; }
-
-  .property-table, .inquiry-table { overflow-x: auto; }
-  .property-table .table-header,
-  .property-table .table-row { grid-template-columns: 70px 1fr 60px 80px; gap: 8px; }
-  .property-table .table-header span:nth-child(5),
-  .property-table .table-header span:nth-child(6),
-  .property-table .table-row span:nth-child(5),
-  .property-table .table-row span:nth-child(6) { display: none; }
-
-  .inquiry-table .table-header,
-  .inquiry-table .table-row { grid-template-columns: 1fr 60px 90px; gap: 8px; }
-  .inquiry-table .table-header span:nth-child(4),
-  .inquiry-table .table-header span:nth-child(5),
-  .inquiry-table .table-row span:nth-child(4),
-  .inquiry-table .table-row span:nth-child(5) { display: none; }
-
-  .form-grid { grid-template-columns: 1fr; padding: 20px 16px; }
-  .form-group.full { grid-column: 1; }
+  .property-table .table-header, .property-table .table-row { grid-template-columns: 50px 1fr 60px 80px; gap: 8px; }
+  .property-table .table-header span:nth-child(4), .property-table .table-header span:nth-child(5),
+  .property-table .table-header span:nth-child(6), .property-table .table-header span:nth-child(7),
+  .property-table .table-row span:nth-child(4), .property-table .table-row span:nth-child(5),
+  .property-table .table-row span:nth-child(6), .property-table .table-row span:nth-child(7) { display: none; }
+  .inquiry-table .table-header, .inquiry-table .table-row { grid-template-columns: 1fr 60px 90px; gap: 8px; }
+  .inquiry-table .table-header span:nth-child(4), .inquiry-table .table-header span:nth-child(5),
+  .inquiry-table .table-row span:nth-child(4), .inquiry-table .table-row span:nth-child(5) { display: none; }
+  .new-form-grid { grid-template-columns: 1fr; }
+  .new-form-item { border-right: none; }
+  .new-form-item.full { grid-column: 1; }
   .preview-grid { grid-template-columns: repeat(3, 1fr); }
-
   .save-btn { width: 100%; }
-  .add-btn, .cancel-btn { font-size: 12px; padding: 8px 12px; }
 }
 </style>
