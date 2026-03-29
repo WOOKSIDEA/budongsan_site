@@ -296,11 +296,16 @@ async function loadInquiries() {
   inquiries.value = res.data
 }
 function searchAddress() {
-  new daum.Postcode({
-    oncomplete: (data) => {
-      form.value.address = data.roadAddress || data.jibunAddress
-    }
-  }).open()
+  const script = document.createElement('script')
+  script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
+  script.onload = () => {
+    new daum.Postcode({
+      oncomplete: (data) => {
+        form.value.address = data.roadAddress || data.jibunAddress
+      }
+    }).open()
+  }
+  document.head.appendChild(script)
 }
 
 function doLogout() {
